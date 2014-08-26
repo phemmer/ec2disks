@@ -1,5 +1,8 @@
 version=$(shell cat VERSION).$(shell git rev-list --count $(shell git log -1 --pretty=format:%H -- VERSION)..HEAD .)
 
+.PHONY: all
+all: ec2disks
+
 .PHONY: version
 version:
 	@echo $(version)
