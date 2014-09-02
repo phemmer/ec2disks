@@ -1,21 +1,21 @@
 package main
+
 import (
+	"flag"
+	"fmt"
 	"github.com/crowdmob/goamz/aws"
 	"github.com/crowdmob/goamz/ec2"
-	"time"
-	"strings"
-	"net/http"
 	"io/ioutil"
-	"fmt"
-	"flag"
+	"net/http"
 	"os"
+	"strings"
+	"time"
 )
 
-
 type Disk struct {
-	Name string
-	Type string
-	Id string
+	Name    string
+	Type    string
+	Id      string
 	Aliases []string
 }
 
@@ -50,14 +50,14 @@ func main() {
 	}
 
 	devicePrefix := ""
-	if ! *flagDeviceNoPrefix {
+	if !*flagDeviceNoPrefix {
 		devicePrefix = "disk/ec2/"
 	}
 
 	search := ""
 	if len(flag.Args()) == 1 {
 		search = flag.Arg(0)
-		if ! strings.HasPrefix(search, "/dev/") {
+		if !strings.HasPrefix(search, "/dev/") {
 			search = "/dev/" + search
 		}
 	}
@@ -77,7 +77,7 @@ func main() {
 		deviceMapNames := strings.Split(devicesString, "\n")
 		for _, deviceMapName := range deviceMapNames {
 			deviceName, err := httpGet("2014-02-25/meta-data/block-device-mapping/" + deviceMapName)
-			if ! strings.HasPrefix(deviceName, "/dev/") {
+			if !strings.HasPrefix(deviceName, "/dev/") {
 				deviceName = "/dev/" + deviceName
 			}
 			deviceName = strings.Replace(deviceName, "/dev/sd", "/dev/xvd", 1)
@@ -89,13 +89,12 @@ func main() {
 				disk = &Disk{Name: deviceName}
 				disks[deviceName] = disk
 			}
-			disk.Aliases = append(disk.Aliases, devicePrefix + deviceMapName)
+			disk.Aliases = append(disk.Aliases, devicePrefix+deviceMapName)
 			if strings.HasPrefix(deviceMapName, "ephemeral") || deviceMapName == "swap" {
 				disk.Type = "ephemeral"
 			}
 		}
 	}
-
 
 	// then look up using an API call
 	auth, err := aws.GetAuth("", "", "", time.Time{})
@@ -123,7 +122,7 @@ func main() {
 		}
 		disk.Type = "ebs"
 		disk.Id = device.EBS.VolumeId
-		disk.Aliases = append(disk.Aliases, devicePrefix + device.EBS.VolumeId)
+		disk.Aliases = append(disk.Aliases, devicePrefix+device.EBS.VolumeId)
 	}
 
 	for _, disk := range disks {
@@ -133,7 +132,7 @@ func main() {
 
 		if *flagAliases {
 			if search == "" {
-				if ! *flagDeviceNoPrefix {
+				if !*flagDeviceNoPrefix {
 					fmt.Printf("%s ", disk.Name)
 				} else {
 					fmt.Printf("%s ", strings.Replace(disk.Name, "/dev/", "", 1))
