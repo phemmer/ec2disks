@@ -113,7 +113,11 @@ func main() {
 	instance := resp.Reservations[0].Instances[0]
 
 	for _, device := range instance.BlockDevices {
-		name := strings.Replace(device.DeviceName, "/dev/sd", "/dev/xvd", 1)
+		name := device.DeviceName
+		if ! strings.HasPrefix(name, "/") {
+			name = "/dev/" + name
+		}
+		name = strings.Replace(name, "/dev/sd", "/dev/xvd", 1)
 
 		disk := disks[name]
 		if disk == nil {
